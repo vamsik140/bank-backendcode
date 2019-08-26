@@ -3,8 +3,6 @@ package com.bank.bank.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -109,14 +107,41 @@ public class BankingServiceImp implements BankingService {
 
 
 	@Override
-	public ResponseEntity<? extends AbstractResponse> getAllBankDetails(@Valid BranchDetailsReq req) {
+	public ResponseEntity<? extends AbstractResponse> getAllBankDetails(BranchDetailsReq req, CommonPojo pagination) {
 
 		LOGGER.info("getAllBankDetails-->");
 		
-		List<Branches> listBranches = branchesRepository.findByBanksNameAndCity(req.getBankName(), req.getCity());
+		List<Branches> branchess = null;
+		Page<Branches> pageBranches = null;
+		Pageable pageable = null;
+		
+		if (pagination.getIsPaginationRequired()) {
+			if (pagination.getIsOrderRequired()) {
+				pageable = new PageRequest(pagination.getPageNumber(), pagination.getPageSize(),
+						(pagination.getIsAscending() == true ? Sort.Direction.ASC : Sort.Direction.DESC),
+						pagination.getOrderField());
+			} else {
+				pageable = new PageRequest(pagination.getPageNumber(), pagination.getPageSize());
+			}
+			Long start = System.currentTimeMillis();
+			pageBranches = branchesRepository.findAll(pageable);
+			
+			pageBranches = branchesRepository.findByBanksNameAndCity(req.getBankName(), req.getCity(),pageable);
+			
+			Long end = System.currentTimeMillis();
+			LOGGER.info("total time taken by getAllBankDetails in M/S " + (end - start));
+		} else {
+			Long start = System.currentTimeMillis();
+			branchess = branchesRepository.findAll();
+			
+			branchess = branchesRepository.findByBanksNameAndCity(req.getBankName(), req.getCity());
+			
+			Long end = System.currentTimeMillis();
+			LOGGER.info("total time taken by getAllBankDetails in M/S " + (end - start));
+		}
 		
 		List<BranchesResponse> list = new ArrayList<BranchesResponse>();
-		for(Branches res : listBranches){
+		for(Branches res : pagination.getIsPaginationRequired() == true ? pageBranches : branchess){
 			BranchesResponse br = new BranchesResponse();
 			br.setAddress(res.getAddress());
 			br.setBankName(res.getBanks().getName());
