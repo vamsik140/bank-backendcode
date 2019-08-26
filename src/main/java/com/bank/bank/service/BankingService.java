@@ -1,7 +1,5 @@
 package com.bank.bank.service;
 
-import javax.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 
 import com.bank.bank.pojo.BranchDetailsReq;
@@ -14,7 +12,7 @@ public interface BankingService {
 
 	ResponseEntity<? extends AbstractResponse> getAllBankDetails(CommonPojo pagination);
 
-	ResponseEntity<? extends AbstractResponse> getAllBankDetails(@Valid BranchDetailsReq req);
+	ResponseEntity<? extends AbstractResponse> getAllBankDetails(BranchDetailsReq req, CommonPojo pagination);
 
 
 }
